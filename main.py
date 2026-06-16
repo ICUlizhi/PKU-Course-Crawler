@@ -87,12 +87,19 @@ def get_table_data_safely(driver):
     return table_data
 
 
-def safe_click(element):
+def safe_click(driver, element):
     """更稳定的点击方式"""
     try:
         element.click()
     except WebDriverException:
         driver.execute_script("arguments[0].click();", element)
+
+
+def click_portal_entry(driver, wait, entry_id):
+    """等待门户足迹入口真正可点击后再进入，避免遮挡导致点击失败"""
+    entry = wait.until(EC.element_to_be_clickable((By.ID, entry_id)))
+    driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", entry)
+    safe_click(driver, entry)
 
 def extract_department_name(department):
     match = re.match(r'^\d{5}-(.*)', department)
@@ -118,8 +125,7 @@ username_field.send_keys(loaded_data["username"])
 password_field.send_keys(loaded_data["password"])  
 password_field.send_keys(Keys.RETURN)
 
-login_link = wait.until(EC.presence_of_element_located((By.ID, 'courseQuery')))
-login_link.click()
+click_portal_entry(driver, wait, 'courseQuery')
 time.sleep(2)  
 driver.switch_to.window(driver.window_handles[-1])  
 
@@ -240,8 +246,7 @@ username_field.send_keys(loaded_data["username"])
 password_field.send_keys(loaded_data["password"])  
 password_field.send_keys(Keys.RETURN)
 
-login_link = wait.until(EC.presence_of_element_located((By.ID, 'courseIntro')))
-login_link.click()
+click_portal_entry(driver, wait, 'courseIntro')
 time.sleep(2)  
 driver.switch_to.window(driver.window_handles[-1])  
 
@@ -335,5 +340,4 @@ df1.to_excel("课表信息汇总+.xlsx", index=False)
 # #### 帮 pkuhub.cn 生成一个json
 
 # In[28]:
-
 
